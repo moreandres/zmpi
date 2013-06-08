@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <check.h>
 
+#include "../src/zmpi.h"
+
 START_TEST(test)
 {
   ;

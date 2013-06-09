@@ -22,6 +22,7 @@ AC_CHECK_LIB([zmq], [zmq_ctx_new])
 # Checks for typedefs, structures, and compiler characteristics.
 
 # Checks for library functions.
+AC_CHECK_FUNCS([gettimeofday])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile

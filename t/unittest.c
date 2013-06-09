@@ -6,6 +6,64 @@
 
 #define check(x, msg) ck_assert_msg(x, msg)
 
+START_TEST(mpi_comm_rank)
+{
+  check(MPI_Comm_rank(-1, NULL) == MPI_ERR_ARG,
+	"mpi_comm_rank invalid parameters");
+
+  int rank;
+  check(MPI_Comm_rank(MPI_COMM_WORLD, &rank) == MPI_SUCCESS,
+	"mpi_comm_rank valid parameters");
+}
+END_TEST
+
+START_TEST(mpi_comm_size)
+{
+  check(MPI_Comm_size(-1, NULL) == MPI_ERR_ARG,
+	"mpi_comm_size invalid parameters");
+
+  int size;
+  check(MPI_Comm_size(MPI_COMM_WORLD, &size) == MPI_SUCCESS,
+	"mpi_comm_size valid parameters");
+}
+END_TEST
+
+START_TEST(mpi_finalized)
+{
+  check(MPI_Finalized(NULL) == MPI_ERR_ARG,
+	"mpi_finalized invalid parameters");
+}
+END_TEST
+
+START_TEST(mpi_init_thread)
+{
+  check(MPI_Init_thread(NULL, NULL, -1, NULL) == MPI_ERR_ARG,
+	"mpi_init_thread invalid arguments");
+
+  int argc = 4;
+  char *argv[] = { "one", "two", "three", "four", };
+  
+  int provided = 0;
+  check(MPI_Init_thread(&argc, (char ***) &argv,
+			MPI_THREAD_SINGLE,
+			&provided) == MPI_SUCCESS,
+	"mpi_init_thread valid arguments");
+}
+END_TEST
+
+START_TEST(mpi_init)
+{
+  check(MPI_Init(NULL, NULL) == MPI_ERR_ARG,
+	"mpi_init invalid arguments");
+
+  int argc = 4;
+  char *argv[] = { "one", "two", "three", "four", };
+  
+  check(MPI_Init(&argc, (char ***) &argv) == MPI_SUCCESS,
+	"mpi_init valid arguments");
+}
+END_TEST
+
 START_TEST(mpi_finalize)
 {
   check(MPI_Finalize() == MPI_SUCCESS,
@@ -72,11 +130,16 @@ int main ()
   tcase_add_test(tc, mpi_get_processor_name);
   tcase_add_test(tc, mpi_wtick);
   tcase_add_test(tc, mpi_finalize);
+  tcase_add_test(tc, mpi_init);
+  tcase_add_test(tc, mpi_init_thread);
+  tcase_add_test(tc, mpi_finalized);
+  tcase_add_test(tc, mpi_comm_size);
+  tcase_add_test(tc, mpi_comm_rank);
 
   suite_add_tcase(s, tc);
 
   SRunner *r = srunner_create(s);
-  srunner_run_all(r, CK_NORMAL);
+  srunner_run_all(r, CK_VERBOSE);
   failed = srunner_ntests_failed(r);
   srunner_free(r);
 

@@ -65,6 +65,11 @@ enum {
 enum { MPI_COMM_WORLD = 0, MPI_COMM_SELF, };
 enum { MPI_GROUP_EMPTY, };
 
+enum { MPI_THREAD_SINGLE, MPI_THREAD_FUNNELED,
+       MPI_THREAD_SERIALIZED, MPI_THREAD_MULTIPLE, };
+
+#define MPI_WTICK 0.000001
+
 int MPI_Abort(MPI_Comm comm, int code);
 int MPI_Accumulate(void *origin_addr, int origin_count, MPI_Datatype origin_datatype,
 		   int target_rank, MPI_Aint target_disp, int target_count,

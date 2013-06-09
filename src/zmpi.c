@@ -1,8 +1,19 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <err.h>
+#include <unistd.h>
 
 #include "zmpi.h"
+
+int MPI_Get_processor_name(char *name, int *length)
+{
+  if (!name || !length)
+    return MPI_ERR_ARG;
+
+  int ret = gethostname(name, *length);
+
+  return MPI_SUCCESS;
+}
 
 int MPI_Get_version(int *version, int *subversion)
 {

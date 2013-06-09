@@ -5,6 +5,11 @@
 
 #include "zmpi.h"
 
+double MPI_Wtick(void)
+{
+  return 0.000001;
+}
+
 int MPI_Get_processor_name(char *name, int *length)
 {
   if (!name || !length)

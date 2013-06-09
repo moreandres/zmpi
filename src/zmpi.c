@@ -5,6 +5,11 @@
 
 #include "zmpi.h"
 
+int MPI_Finalize(void)
+{
+  return MPI_SUCCESS;
+}
+
 double MPI_Wtick(void)
 {
   return 0.000001;

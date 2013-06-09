@@ -6,6 +6,13 @@
 
 #define check(x, msg) ck_assert_msg(x, msg)
 
+START_TEST(mpi_finalize)
+{
+  check(MPI_Finalize() == MPI_SUCCESS,
+	"MPI_Finalize valid arguments");
+}
+END_TEST
+
 START_TEST(mpi_wtick)
 {
   check(MPI_Wtick() == 0.000001,
@@ -64,6 +71,7 @@ int main ()
   tcase_add_test(tc, mpi_wtime);
   tcase_add_test(tc, mpi_get_processor_name);
   tcase_add_test(tc, mpi_wtick);
+  tcase_add_test(tc, mpi_finalize);
 
   suite_add_tcase(s, tc);
 

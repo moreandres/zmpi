@@ -6,6 +6,20 @@
 
 #define check(x, msg) ck_assert_msg(x, msg)
 
+START_TEST(mpi_recv)
+{
+  check(MPI_Recv(NULL, -1, -1, -1, -1, -1, NULL) == MPI_ERR_ARG,
+	"mpi_recv invalid paramters");
+}
+END_TEST
+
+START_TEST(mpi_send)
+{
+  check(MPI_Send(NULL, -1, -1, -1, -1, -1) == MPI_ERR_ARG,
+	"mpi_send invalid parameters");
+}
+END_TEST
+
 START_TEST(mpi_comm_rank)
 {
   check(MPI_Comm_rank(-1, NULL) == MPI_ERR_ARG,
@@ -135,6 +149,8 @@ int main ()
   tcase_add_test(tc, mpi_finalized);
   tcase_add_test(tc, mpi_comm_size);
   tcase_add_test(tc, mpi_comm_rank);
+  tcase_add_test(tc, mpi_send);
+  tcase_add_test(tc, mpi_recv);
 
   suite_add_tcase(s, tc);
 

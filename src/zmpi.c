@@ -14,11 +14,28 @@ struct zmpi {
   int enabled;
 } zmpi;
 
+int MPI_Recv(void *buf, int count, MPI_Datatype datatype, int source, 
+	     int tag, MPI_Comm comm, MPI_Status *status)
+{
+  if (!buf || count < 0 || datatype < 0 || source < 0 || tag < 0 || comm < 0 || !status)
+    return MPI_ERR_ARG;
+
+  int ret = zmq_recv(zmpi.receiver, buf, count * datatype, 0);
+  if (!ret)
+    err(errno, "zmq_recv");
+
+  return MPI_SUCCESS;
+}
+
 int MPI_Send(void *buf, int count, MPI_Datatype datatype,
 	     int dest, int tag, MPI_Comm comm)
 {
   if (!buf || count < 0 || datatype < 0 || dest < 0 || tag < 0 || comm < 0)
     return MPI_ERR_ARG;
+
+  int ret = zmq_send(zmpi.sender, buf, count * datatype, 0);
+  if (ret)
+    err(errno, "zmq_send");
 
   return MPI_SUCCESS;
 }

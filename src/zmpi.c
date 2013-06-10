@@ -3,8 +3,25 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <zmq.h>
 
 #include "zmpi.h"
+
+struct zmpi {
+  void *context;
+  void *sender;
+  void *receiver;
+  int enabled;
+} zmpi;
+
+int MPI_Send(void *buf, int count, MPI_Datatype datatype,
+	     int dest, int tag, MPI_Comm comm)
+{
+  if (!buf || count < 0 || datatype < 0 || dest < 0 || tag < 0 || comm < 0)
+    return MPI_ERR_ARG;
+
+  return MPI_SUCCESS;
+}
 
 int MPI_Comm_rank(MPI_Comm comm, int *rank)
 {
@@ -31,7 +48,7 @@ int MPI_Finalized(int *flag)
   if (!flag)
     return MPI_ERR_ARG;
 
-  *flag = 1;
+  *flag = !zmpi.enabled;
 
   return MPI_SUCCESS;
 }
@@ -44,7 +61,7 @@ int MPI_Init_thread(int *argc, char ***argv, int required,
 
   *provided = required;
 
-  return MPI_SUCCESS;
+  return MPI_Init(argc, argv);
 }
 
 int MPI_Init(int *argc, char ***argv)
@@ -52,11 +69,55 @@ int MPI_Init(int *argc, char ***argv)
   if (!argc || !argv)
     return MPI_ERR_ARG;
 
+  void *context = zmq_ctx_new();
+  if (!context)
+    err(errno, "zmq_ctx_new");
+
+  void *sender = zmq_socket(context, ZMQ_PUB);
+  if (!sender)
+    err(errno, "zmq_socket");
+
+  void *receiver = zmq_socket(context, ZMQ_SUB);
+  if (!receiver)
+    err(errno, "zmq_socket");
+  
+  int ret = zmq_bind(sender, "epgm://eth0;239.192.1.1:5555");
+  if (!ret)
+    err(errno, "zmq_bind");
+
+  ret = zmq_connect(receiver, "epgm://eth0;239.192.1.1:5555");
+  if (!ret)
+    err(errno, "zmq_connect");
+
+  zmpi.context = context;
+  zmpi.sender = sender;
+  zmpi.receiver = receiver;
+  zmpi.enabled = 1;
+
   return MPI_SUCCESS;
 }
 
 int MPI_Finalize(void)
 {
+  int ret;
+
+  if (!zmpi.sender || !zmpi.receiver || !zmpi.context)
+    return MPI_ERR_SERVICE;
+
+  ret = zmq_close(zmpi.sender);
+  if (ret)
+    err(errno, "zmq_close");
+
+  ret = zmq_close(zmpi.receiver);
+  if (ret)
+    err(errno, "zmq_close");
+
+  ret = zmq_ctx_destroy(zmpi.context);
+  if (ret)
+    err(errno, "zmq_ctx_destroy");
+
+  zmpi.enabled = 0;
+
   return MPI_SUCCESS;
 }
 

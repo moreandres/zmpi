@@ -18,6 +18,7 @@ AC_CHECK_LIB([check], [suite_create])
 AC_CHECK_LIB([zmq], [zmq_ctx_new])
 
 # Checks for header files.
+AC_CHECK_HEADERS([sys/time.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 

@@ -66,7 +66,7 @@ END_TEST
 
 START_TEST(mpi_finalize)
 {
-  check(MPI_Finalize() == MPI_SUCCESS,
+  check(MPI_Finalize() == MPI_ERR_SERVICE,
 	"MPI_Finalize valid arguments");
 }
 END_TEST

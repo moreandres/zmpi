@@ -4,6 +4,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <zmq.h>
+#include <string.h>
 
 #include "zmpi.h"
 
@@ -11,8 +12,48 @@ struct zmpi {
   void *context;
   void *sender;
   void *receiver;
-  int enabled;
+  char **ranks;
+  int size;
 } zmpi;
+
+int MPI_Barrier(MPI_Comm comm)
+{
+  if (comm < 0)
+    return MPI_ERR_ARG;
+
+  if (!zmpi.sender || !zmpi.receiver)
+    return MPI_ERR_SERVICE;
+
+  int ret;
+  char buffer[32];
+  ret = sprintf(buffer, "Barrier: %d", comm);
+  if (ret == -1)
+    err(errno, "sprintf");
+  int length = strlen(buffer);
+
+  zmq_msg_t msg;
+  ret = zmq_msg_init_size(&msg, length);
+  if (!ret)
+    err(errno, "zmq_msg_init_size");
+
+  ret = zmq_msg_send(&msg, zmpi.sender, 0);
+  if (!ret)
+    err(errno, "zmq_msg_send");
+
+  ret = zmq_msg_init(&msg);
+  if (!ret)
+    err(errno, "zmq_msg_init");
+
+  ret = zmq_msg_recv(&msg, zmpi.receiver, 0);
+  if (!ret)
+    err(errno, "zmq_msg_recv");
+
+  ret = zmq_msg_close(&msg);
+  if (!ret)
+    err(errno, "zmq_msg_close");
+
+  return MPI_SUCCESS;
+}
 
 int MPI_Recv(void *buf, int count, MPI_Datatype datatype, int source, 
 	     int tag, MPI_Comm comm, MPI_Status *status)
@@ -65,7 +106,7 @@ int MPI_Finalized(int *flag)
   if (!flag)
     return MPI_ERR_ARG;
 
-  *flag = !zmpi.enabled;
+  *flag = !zmpi.context;
 
   return MPI_SUCCESS;
 }
@@ -109,7 +150,6 @@ int MPI_Init(int *argc, char ***argv)
   zmpi.context = context;
   zmpi.sender = sender;
   zmpi.receiver = receiver;
-  zmpi.enabled = 1;
 
   return MPI_SUCCESS;
 }
@@ -132,8 +172,6 @@ int MPI_Finalize(void)
   ret = zmq_ctx_destroy(zmpi.context);
   if (ret)
     err(errno, "zmq_ctx_destroy");
-
-  zmpi.enabled = 0;
 
   return MPI_SUCCESS;
 }

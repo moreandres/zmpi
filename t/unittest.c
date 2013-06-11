@@ -6,10 +6,20 @@
 
 #define check(x, msg) ck_assert_msg(x, msg)
 
+START_TEST(mpi_barrier)
+{
+  check(MPI_Barrier(-1) == MPI_ERR_ARG,
+	"mpi_barrier invalid parameters");
+
+  check(MPI_Barrier(MPI_COMM_WORLD) == MPI_ERR_SERVICE,
+	"mpi_barrier valid parameters");
+}
+END_TEST
+
 START_TEST(mpi_recv)
 {
   check(MPI_Recv(NULL, -1, -1, -1, -1, -1, NULL) == MPI_ERR_ARG,
-	"mpi_recv invalid paramters");
+	"mpi_recv invalid parameters");
 }
 END_TEST
 
@@ -151,6 +161,7 @@ int main ()
   tcase_add_test(tc, mpi_comm_rank);
   tcase_add_test(tc, mpi_send);
   tcase_add_test(tc, mpi_recv);
+  tcase_add_test(tc, mpi_barrier);
 
   suite_add_tcase(s, tc);
 
